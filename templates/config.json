@@ -1,0 +1,10 @@
+{
+  "username": "citysdk@example.com",
+  "password": "example-password",
+  "host": "citysdk.example.com",
+  "layer": "domain.layername",
+  "description": "description of this layer",
+  "organization": "organization who made the data for this layer",
+  "category": "category.name"
+}
+
