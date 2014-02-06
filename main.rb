@@ -1,11 +1,19 @@
 require 'json'
+require 'logger'
 
 require 'citysdk'
 require 'trollop'
 
+DATA_TYPES = [
+  'json',
+  'shape'
+]
 
 def main
   opts = parse_options()
+
+  logger = Logger.new(STDOUT)
+
   url = opts.fetch(:url)
   email = opts.fetch(:email)
   password = opts.fetch(:password)
@@ -15,6 +23,7 @@ def main
 
   layer = opts.fetch(:layer)
   unless api.layer?(layer)
+    logger.info("Creating layer: #{layer}, as it does not exist")
     api.create_layer(
       name:         layer,
       description:  opts.fetch(:description),
@@ -23,13 +32,27 @@ def main
     )
   end # unless
 
+  logger.info("Loading nodes from #{opts.fetch(:input)}")
   builder = CitySDK::NodeBuilder.new
-  builder.load_data_set_from_json!(opts.fetch(:input))
-  builder.set_geometry_from_lat_lon!('lat', 'lon')
-  builder.set_node_id_from_data_field!('id')
-  builder.set_node_name_from_data_field!('name')
+  if opts[:type] == 'json'
+    builder.load_data_set_from_json!(opts.fetch(:input))
+    builder.set_geometry_from_lat_lon!('lat', 'lon')
+  elsif opts[:type] == 'shape'
+    builder.load_data_set_from_zip!(opts.fetch(:input))
+  end
+
+  unless opts[:id_field].nil?
+    builder.set_node_id_from_data_field!(opts[:id_field])
+  end
+
+  unless opts[:name_field].nil?
+    builder.set_node_name_from_data_field!(opts[:name_field])
+  end
+
+  logger.info('Building nodes')
   nodes = builder.build
 
+  logger.info('Creating nodes through the CitySDK API')
   api.create_nodes(layer, nodes)
   return 0
 end
@@ -37,6 +60,7 @@ end
 
 def parse_options
   opts = Trollop::options do
+    opt(:type        , "One of: #{DATA_TYPES.join(', ')}", type: :string)
     opt(:category    , 'Layer category'      , type: :string)
     opt(:config      , 'Configuration file'  , type: :string)
     opt(:description , 'Layer description'   , type: :string)
@@ -46,14 +70,16 @@ def parse_options
     opt(:password    , 'CitySDK password'    , type: :string)
     opt(:url         , 'CitySDK API base URL', type: :string)
     opt(:email       , 'CitySDK email'       , type: :string)
+    opt(:id_field    , 'Field for id'        , type: :string)
+    opt(:name_field  , 'Field for name'      , type: :string)
   end
 
-  if opts.key?(:config)
+  unless opts[:config].nil?
     config = open(opts.fetch(:config)) do |config_file|
       JSON.load(config_file, nil, symbolize_names: true)
-    end
+    end # do
     opts = opts.merge(config)
-  end
+  end # unless
 
   required = [
     :category,
@@ -62,12 +88,17 @@ def parse_options
     :organization,
     :password,
     :url,
-    :email
+    :email,
+    :type
   ]
 
   required.each do |opt|
     Trollop::die(opt, 'must be specified.') if opts[opt].nil?
-  end
+  end # do
+
+  unless DATA_TYPES.include? opts[:type]
+    Trollop::die(:type, "must be one of #{DATA_TYPES.join(', ')}")
+  end # unless
 
   opts
 end
