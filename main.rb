@@ -6,7 +6,8 @@ require 'trollop'
 
 DATA_TYPES = [
   'json',
-  'shape'
+  'kml',
+  'zip'
 ]
 
 def main
@@ -34,11 +35,25 @@ def main
 
   logger.info("Loading nodes from #{opts.fetch(:input)}")
   builder = CitySDK::NodeBuilder.new
-  if opts[:type] == 'json'
+
+  case opts[:type]
+  when 'json'
     builder.load_data_set_from_json!(opts.fetch(:input))
     builder.set_geometry_from_lat_lon!('lat', 'lon')
-  elsif opts[:type] == 'shape'
+  when 'zip'
     builder.load_data_set_from_zip!(opts.fetch(:input))
+  when 'kml'
+    builder.load_data_set_from_kml!(opts.fetch(:input))
+  end
+
+  unless opts[:id].nil?
+    builder.set_node_id_from_value!(opts.fetch(:id))
+  end
+
+  unless opts[:name].nil?
+    name = opts.fetch(:name)
+    builder.set_node_name_from_value!(name)
+    builder.set_node_data_from_key_value!('name', name)
   end
 
   unless opts[:id_field].nil?
@@ -72,6 +87,8 @@ def parse_options
     opt(:email       , 'CitySDK email'       , type: :string)
     opt(:id_field    , 'Field for id'        , type: :string)
     opt(:name_field  , 'Field for name'      , type: :string)
+    opt(:id          , 'Id to use'           , type: :string)
+    opt(:name        , 'Name to user'        , type: :string)
   end
 
   unless opts[:config].nil?
