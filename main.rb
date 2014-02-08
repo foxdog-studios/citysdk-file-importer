@@ -70,6 +70,9 @@ def main
   logger.info('Creating nodes through the CitySDK API')
   api.create_nodes(layer, nodes)
   return 0
+rescue Faraday::Error::ConnectionFailed => connection_error
+  puts "Could not connect to the API: #{connection_error.message}"
+  return 1
 end
 
 
