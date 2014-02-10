@@ -82,7 +82,7 @@ def parse_options
     opt(:category    , 'Layer category'      , type: :string)
     opt(:config      , 'Configuration file'  , type: :string)
     opt(:description , 'Layer description'   , type: :string)
-    opt(:input       , 'Input file to import', type: :string, required: true)
+    opt(:input       , 'Input file to import', type: :string)
     opt(:layer       , 'Layer name'          , type: :string)
     opt(:organization, 'Layer organization'  , type: :string)
     opt(:password    , 'CitySDK password'    , type: :string)
@@ -109,7 +109,8 @@ def parse_options
     :password,
     :url,
     :email,
-    :type
+    :type,
+    :input
   ]
 
   required.each do |opt|
