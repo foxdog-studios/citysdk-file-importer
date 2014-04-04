@@ -1,9 +1,9 @@
 source 'https://rubygems.org'
 
 ruby '2.1.0'
+#ruby-gemset=citysdk
 
-#ruby-gemset=citysdk-file-importer
-
-gem 'citysdk', :git => 'https://github.com/foxdog-studios/citysdk-client'
-gem 'trollop', '~> 2.0'
+gem 'citysdk-client', git: 'https://github.com/foxdog-studios/citysdk-client'
+gem 'faraday'
+gem 'trollop'
 

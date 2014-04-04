@@ -1,7 +1,8 @@
 require 'json'
 require 'logger'
 
-require 'citysdk'
+require 'citysdk/client'
+require 'faraday'
 require 'trollop'
 
 DATA_TYPES = [
@@ -12,14 +13,14 @@ DATA_TYPES = [
 
 def main
   opts = parse_options()
-
   logger = Logger.new(STDOUT)
 
   url = opts.fetch(:url)
   email = opts.fetch(:email)
   password = opts.fetch(:password)
 
-  api = CitySDK::API.new(url)
+  conn = Faraday.new(url: url)
+  api = CitySDK::API.new(conn)
   api.set_credentials(email, password)
 
   layer = opts.fetch(:layer)
@@ -34,7 +35,7 @@ def main
   end # unless
 
   logger.info("Loading nodes from #{opts.fetch(:input)}")
-  builder = CitySDK::NodeBuilder.new
+  builder = CitySDK::NodeBuilder.new()
 
   case opts[:type]
   when 'json'
