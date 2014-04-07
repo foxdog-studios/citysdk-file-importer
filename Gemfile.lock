@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/foxdog-studios/citysdk-client
-  revision: 94836d919f3fe6b21af526a08b221ee7da96eac6
+  revision: dd5083e0055dd72b51ccc5b9591f7d27d81c8e32
   specs:
     citysdk-client (0.1.2.1)
       addressable (~> 2.3.5)
