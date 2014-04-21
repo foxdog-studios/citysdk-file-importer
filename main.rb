@@ -35,17 +35,19 @@ def main
   end # unless
 
   logger.info("Loading nodes from #{opts.fetch(:input)}")
-  builder = CitySDK::NodeBuilder.new()
 
-  case opts[:type]
-  when 'json'
-    builder.load_data_set_from_json!(opts.fetch(:input))
+  dataset_loader = CitySDK::DatasetFactory.new
+  dataset = dataset_loader.load_path(
+    opts.fetch(:type).to_sym,
+    opts.fetch(:input)
+  )
+  puts dataset
+
+  builder = CitySDK::NodeBuilder.new(dataset)
+
+  if opts.fetch(:type) == 'json'
     builder.set_geometry_from_lat_lon!('lat', 'lon')
-  when 'zip'
-    builder.load_data_set_from_zip!(opts.fetch(:input))
-  when 'kml'
-    builder.load_data_set_from_kml!(opts.fetch(:input))
-  end
+  end # if
 
   unless opts[:id].nil?
     builder.set_node_id_from_value!(opts.fetch(:id))
@@ -66,7 +68,7 @@ def main
   end
 
   logger.info('Building nodes')
-  nodes = builder.build
+  nodes = builder.nodes
 
   logger.info('Creating nodes through the CitySDK API')
   api.create_nodes(layer, nodes)
@@ -95,12 +97,12 @@ def parse_options
     opt(:name        , 'Name to user'        , type: :string)
   end
 
-  unless opts[:config].nil?
+  if opts[:config]
     config = open(opts.fetch(:config)) do |config_file|
       JSON.load(config_file, nil, symbolize_names: true)
     end # do
     opts = opts.merge(config)
-  end # unless
+  end # if
 
   required = [
     :category,
