@@ -36,12 +36,10 @@ def main
 
   logger.info("Loading nodes from #{opts.fetch(:input)}")
 
-  dataset_loader = CitySDK::DatasetFactory.new
-  dataset = dataset_loader.load_path(
-    opts.fetch(:type).to_sym,
-    opts.fetch(:input)
+  dataset = CitySDK::Dataset.load_path(
+    opts.fetch(:input),
+    opts.fetch(:type).to_sym
   )
-  puts dataset
 
   builder = CitySDK::NodeBuilder.new(dataset)
 
